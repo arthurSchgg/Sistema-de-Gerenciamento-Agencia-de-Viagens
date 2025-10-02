@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Agência de Viagens{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}"><i class="fas fa-globe-americas me-2"></i>AgênciaSys</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('index') }}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('listar_pacotes') }}">Pacotes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('gerenciar_reservas') }}">Reservas</a>
+                </li>
+                 {% if current_user.role == 'admin' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('historico') }}">Histórico</a>
+                </li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav">
+                 <li class="nav-item">
+                    <span class="navbar-text me-3">
+                        Olá, {{ current_user.username }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-2"></i>Sair</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<h2 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-briefcase me-2"></i>Pacotes Ativos</h5>
+                <h2 class="display-6">{{ pacotes }}</h2>
+                <p class="card-text">Pacotes com data de início futura</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users me-2"></i>Reservas Ativas</h5>
+                <h2 class="display-6">{{ reservas }}</h2>
+                <p class="card-text">Total de reservas ativas no sistema</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-exclamation-triangle me-2"></i>Alertas</h5>
+                <h2 class="display-6">{{ alertas|length }}</h2>
+                <p class="card-text">Problemas de vagas em pacotes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if alertas %}
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bell me-2"></i>Alertas de Disponibilidade</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for alerta in alertas %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ alerta }}
+                    <span class="badge {{ 'bg-warning text-dark' if 'Insuficiente' in alerta else 'bg-danger' }} rounded-pill">
+                        {{ '⚠️ Vagas Mínimas' if 'Insuficiente' in alerta else '🚨 Overbooking' }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-rocket me-2"></i>Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('cadastrar_pacote') }}" class="btn btn-primary me-2"><i class="fas fa-plus me-1"></i>Novo Pacote</a>
+                {% endif %}
+                <a href="{{ url_for('listar_pacotes') }}" class="btn btn-secondary me-2"><i class="fas fa-list me-1"></i>Ver Todos os Pacotes</a>
+                <a href="{{ url_for('gerenciar_reservas') }}" class="btn btn-success"><i class="fas fa-calendar-check me-1"></i>Gerenciar Reservas</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

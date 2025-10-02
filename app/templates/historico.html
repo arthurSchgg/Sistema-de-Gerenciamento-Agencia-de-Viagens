@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico - Agência de Viagens{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}"><i class="fas fa-globe-americas me-2"></i>AgênciaSys</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('listar_pacotes') }}">Pacotes</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('gerenciar_reservas') }}">Reservas</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{ url_for('historico') }}">Histórico</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a href="{{ url_for('logout') }}" class="btn btn-outline-light">Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<h2 class="mb-4"><i class="fas fa-history me-2"></i>Histórico de Atividades</h2>
+
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <h5><i class="fas fa-stream me-2"></i>Registros Recentes ({{ historicos.total }})</h5>
+    </div>
+    <div class="card-body">
+        {% if historicos.items %}
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Data/Hora</th>
+                        <th style="width: 15%;">Usuário</th>
+                        <th style="width: 15%;">Ação</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in historicos.items %}
+                    <tr>
+                        <td>{{ registro.data_acao.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ registro.usuario.username if registro.usuario else 'N/A' }}</td>
+                        <td>
+                            {% if 'login' in registro.acao or 'logout' in registro.acao %}
+                                <span class="badge bg-primary">{{ registro.acao|replace('_', ' ')|title }}</span>
+                            {% elif 'cadastrar' in registro.acao or 'nova' in registro.acao %}
+                                <span class="badge bg-success">{{ registro.acao|replace('_', ' ')|title }}</span>
+                            {% elif 'edicao' in registro.acao %}
+                                <span class="badge bg-warning text-dark">{{ registro.acao|replace('_', ' ')|title }}</span>
+                            {% elif 'exclusao' in registro.acao or 'cancelamento' in registro.acao %}
+                                <span class="badge bg-danger">{{ registro.acao|replace('_', ' ')|title }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ registro.acao|replace('_', ' ')|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ registro.descricao }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <nav aria-label="Page navigation" class="mt-4">
+          <ul class="pagination justify-content-center">
+            {% for page_num in historicos.iter_pages() %}
+              {% if page_num %}
+                {% if historicos.page == page_num %}
+                  <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                {% else %}
+                  <li class="page-item"><a class="page-link" href="{{ url_for('historico', page=page_num) }}">{{ page_num }}</a></li>
+                {% endif %}
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </nav>
+
+        {% else %}
+        <div class="alert alert-light m-3">
+            Nenhum registro de histórico encontrado.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

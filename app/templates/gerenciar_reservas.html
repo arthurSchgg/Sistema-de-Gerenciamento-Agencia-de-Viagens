@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Reservas - Agência de Viagens{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}"><i class="fas fa-globe-americas me-2"></i>AgênciaSys</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('listar_pacotes') }}">Pacotes</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{ url_for('gerenciar_reservas') }}">Reservas</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a href="{{ url_for('logout') }}" class="btn btn-outline-light">Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<h2 class="mb-4"><i class="fas fa-calendar-check me-2"></i>Gerenciar Reservas</h2>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5><i class="fas fa-plus me-2"></i>Nova Reserva</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('gerenciar_reservas') }}">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.cliente_nome.label(class="form-label") }}
+                    {{ form.cliente_nome(class="form-control", placeholder="Nome completo do cliente") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.cliente_email.label(class="form-label") }}
+                    {{ form.cliente_email(class="form-control", placeholder="email@exemplo.com") }}
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.pacote_id.label(class="form-label") }}
+                {{ form.pacote_id(class="form-select") }}
+            </div>
+            <div class="d-grid d-md-flex gap-2">
+                {{ form.submit(class="btn btn-success") }}
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-info">
+        <h5><i class="fas fa-list me-2"></i>Reservas Ativas ({{ reservas.total }})</h5>
+    </div>
+    <div class="card-body">
+        {% if reservas.items %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Pacote</th>
+                        <th>Data da Reserva</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas.items %}
+                    <tr>
+                        <td>{{ reserva.cliente.nome }}<br><small class="text-muted">{{ reserva.cliente.email }}</small></td>
+                        <td><strong>{{ reserva.pacote.destino }}</strong></td>
+                        <td>{{ reserva.data_reserva.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ reserva.id }}">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </button>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="cancelModal{{ reserva.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">Cancelar Reserva #{{ reserva.id }}</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('cancelar_reserva', reserva_id=reserva.id) }}">
+                                    {{ cancel_form.hidden_tag() }}
+                                    <div class="modal-body">
+                                        <p>Deseja realmente cancelar a reserva de <strong>{{ reserva.cliente.nome }}</strong> para <strong>{{ reserva.pacote.destino }}</strong>?</p>
+                                        <div class="mb-3">
+                                            {{ cancel_form.motivo.label(class="form-label") }}
+                                            {{ cancel_form.motivo(class="form-control", rows="3", placeholder="Ex: Cliente desistiu...") }}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Manter Reserva</button>
+                                        {{ cancel_form.submit(class="btn btn-danger") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <nav aria-label="Page navigation" class="mt-4">
+          <ul class="pagination justify-content-center">
+            {% for page_num in reservas.iter_pages() %}
+              {% if page_num %}
+                {% if reservas.page == page_num %}
+                  <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                {% else %}
+                  <li class="page-item"><a class="page-link" href="{{ url_for('gerenciar_reservas', page=page_num) }}">{{ page_num }}</a></li>
+                {% endif %}
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </nav>
+
+        {% else %}
+        <div class="alert alert-light m-3">
+            Nenhuma reserva ativa no momento.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

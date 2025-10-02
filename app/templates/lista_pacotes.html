@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Pacotes - Agência de Viagens{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}"><i class="fas fa-globe-americas me-2"></i>AgênciaSys</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{ url_for('listar_pacotes') }}">Pacotes</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('gerenciar_reservas') }}">Reservas</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a href="{{ url_for('logout') }}" class="btn btn-outline-light">Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-list me-2"></i>Pacotes de Viagem Disponíveis</h2>
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('cadastrar_pacote') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Novo Pacote</a>
+    {% endif %}
+</div>
+
+
+{% if pacotes %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Destino</th>
+                <th>Período</th>
+                <th>Preço (R$)</th>
+                <th>Vagas Disponíveis</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pacote in pacotes %}
+            <tr>
+                <td><strong>{{ pacote.destino }}</strong><br><small class="text-muted">{{ pacote.categoria }}</small></td>
+                <td>{{ pacote.data_inicio.strftime('%d/%m/%y') }} a {{ pacote.data_fim.strftime('%d/%m/%y') }}</td>
+                <td>R$ {{ "%.2f"|format(pacote.preco) }}</td>
+                <td>
+                    <span class="badge fs-6 {{ 'bg-success' if pacote.vagas_disponiveis > 0 else 'bg-danger' }}">
+                        {{ pacote.vagas_disponiveis }}
+                    </span>
+                </td>
+                <td>
+                    {% if pacote.vagas_disponiveis < 0 %}
+                        <span class="badge bg-danger">Overbooked</span>
+                    {% elif (pacote.reservas|selectattr('status', 'equalto', 'ativa')|list|length) < pacote.vagas_min %}
+                        <span class="badge bg-warning text-dark">Vagas Insuficientes</span>
+                    {% else %}
+                        <span class="badge bg-success">Confirmado</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('gerenciar_reservas') }}" class="btn btn-sm btn-success">
+                        <i class="fas fa-calendar-plus me-1"></i>Reservar
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Nenhum pacote disponível no momento.
+</div>
+{% endif %}
+{% endblock %}
